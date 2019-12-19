@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.ysd.RSS.dao.StudentsDao">
+  <resultMap type="students" id="StuRoomShipMap"><!-- id:自定义，type:实体类 -->
+		<!-- property:字段,column:别名 -->
+		<id property="stu_id" column="stu_id" />
+		<result property="stu_cardno" column="stu_cardno"/>
+		<result property="stu_name" column="stu_name"/>
+		<result property="stu_sex" column="stu_sex"/>
+		<result property="stu_remark" column="stu_remark"/>
+		<result property="stu_no" column="stu_no"/>
+		<result property="stu_mem_id" column="stu_mem_id"/>
+		<result property="stu_status" column="stu_status"/>
+	<association property="readrooms" javaType="readrooms"><!-- association：表连接， -->
+		<id property="RR_Id" column="RR_Id" />
+		<result property="RR_Name" column="RR_Name"/>
+		<result property="RR_Remark" column="RR_Remark"/>
+		<result property="RR_Ext1" column="RR_Ext1"/>
+		<result property="RR_Ext2" column="RR_Ext2"/>
+	</association>
+	<association property="memberships" javaType="memberships"> 
+		<id property="mem_id" column="mem_id" />
+		<result property="mem_department" column="mem_department"/>
+		<result property="mem_specialty" column="mem_specialty"/>
+		<result property="mem_degree" column="mem_degree"/>
+		
+	</association>
+	</resultMap>
+  	<select id="selectStuByAll" parameterType="fenye" resultMap="StuRoomShipMap">
+  		select s.*,r.*,m.* from students s INNER JOIN readrooms r INNER JOIN memberships m
+	ON s.stu_status=r.RR_Id AND s.stu_mem_id=m.mem_id
+	
+	limit #{page},#{pageSize}
+  	</select>
+  	<select id="selectStuCount" parameterType="fenye" resultType="int">
+  		select count(1) from students s INNER JOIN readrooms r INNER JOIN memberships m
+ON s.stu_status=r.RR_Id AND s.stu_mem_id=m.mem_id
+  	</select>
+  	<select id="selectStuById" parameterType="int" resultMap="StuRoomShipMap">
+  		select s.*,r.*,m.* from students s INNER JOIN readrooms r INNER JOIN memberships m
+	ON s.stu_status=r.RR_Id AND s.stu_mem_id=m.mem_id	
+	<where>		
+			s.stu_id=#{stu_id}		
+	</where>
+  	</select>
+  		<select id="selectStuByRR_NameAndCount" resultType="bingTu">
+  		select r.RR_Name as name,COUNT(1) as value  from students s INNER JOIN readrooms r 
+	ON s.stu_status=r.RR_Id  GROUP BY r.RR_Name
+  	</select>
+  	<update id="updateStu_status" parameterType="students">
+  	update students 
+  	<set>
+  	stu_status=#{stu_status}
+  	</set>
+  	where stu_cardno=#{stu_cardno}
+  	</update>
+  	<!-- 导入 添加 -->
+  	<insert id="insertStudent" parameterType="Students">
+  		insert into students (stu_cardno,stu_name,stu_sex,stu_remark,stu_no,stu_mem_id)
+  		values (#{stu_cardno},#{stu_name},#{stu_sex},#{stu_remark},#{stu_no},#{stu_mem_id});
+  	</insert>
+  	<!-- 根据卡号查询 -->
+  	<select id="selectStudentByCardno" parameterType="String" resultType="Students">
+  		select * from students where stu_cardno=#{stu_cardno}
+  	</select>
+  	<!-- 根据卡号修改 -->
+  	<update id="updateStudent" parameterType="Students">
+  		update students set stu_name=#{stu_name},stu_sex=#{stu_sex},
+  							stu_remark=#{stu_remark},stu_no=#{stu_no},
+  							stu_mem_id=#{stu_mem_id}
+  		where stu_cardno=#{stu_cardno}
+  	</update>
+  </mapper>

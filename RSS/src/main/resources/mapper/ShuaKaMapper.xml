@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.ysd.RSS.dao.ShuaKaDao">
+  <select id="selectRR_Name" parameterType="int" resultType="readrooms">
+  	SELECT r.RR_Id,r.RR_Name FROM readrooms r
+  	<where>
+  		<if test="_parameter >0">
+  			and r.RR_Id=#{_parameter}
+  		</if> 		
+  	</where>
+  </select>
+  <select id="selectCom_NameByID" parameterType="int" resultType="computers">
+  	SELECT c.Com_Id,c.Com_Ip FROM computers c
+  	<where>
+  		<if test="_parameter >0">
+  			and c.RR_Com_ReadRoomId=#{_parameter}
+  		</if> 		
+  	</where>
+  </select>
+  <select id="selectStuByStu_cardno" parameterType="String" resultType="students">
+  	SELECT s.* FROM students s
+  	<where>
+  		<if test="_parameter !=null and _parameter !=''">
+  			and s.stu_cardno=#{_parameter}
+  		</if> 		
+  	</where>
+  </select>
+  <select id="selectTeaByTea_cardno" parameterType="String" resultType="teachers">
+  	SELECT t.* FROM teachers t
+  	<where>
+  		<if test="_parameter !=null and _parameter !=''">
+  			and t.tea_cardno=#{_parameter}
+  		</if> 		
+  	</where>
+  </select>
+  <insert id="insertConsumelogs" parameterType="consumelogs">
+  	INSERT INTO consumelogs(Con_CardNO,RR_Con_ReadRoomId,Con_Status)
+VALUES(#{Con_CardNO},#{RR_Con_ReadRoomId},#{Con_Status})  	
+  </insert>
+  <update id="updateSta_PerpleNums" parameterType="int">
+  update statistics
+  			<set>
+  			Sta_PerpleNums=Sta_PerpleNums+1, 			
+  			</set> 
+  			where RR_Sta_ReadRoomId=#{RR_Sta_ReadRoomId}		
+  </update>
+   <update id="updateConsumelogs" parameterType="consumelogs">
+  	update consumelogs
+  	<set>
+  	Con_OutTime=#{Con_OutTime},
+  	Con_Status=#{Con_Status}
+  	</set>
+  	where  Con_CardNO=#{Con_CardNO}	and Con_Status=1
+  </update>
+  <select id="selectCon_Status" parameterType="String" resultType="int">
+  SELECT Con_Status FROM consumelogs  
+  <where>
+   Con_CardNO=#{Con_CardNO}
+   and Con_Status!="0"
+  </where> 
+  </select>
+  </mapper>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.ysd.RSS.dao.TeachersDao">
+  <resultMap type="teachers" id="TeaRoomSecMap"><!-- id:自定义，type:实体类 -->
+		<!-- property:字段,column:别名 -->
+		<id property="tea_id" column="tea_id" />
+		<result property="tea_cardno" column="tea_cardno"/>
+		<result property="tea_name" column="tea_name"/>
+		<result property="tea_sex" column="tea_sex"/>
+		<result property="tea_sec_id" column="tea_sec_id"/>
+		<result property="tea_status" column="tea_status"/>
+		<result property="tea_remark" column="tea_remark"/>
+		
+	<association property="readrooms" javaType="readrooms"><!-- association：表连接， -->
+		<id property="RR_Id" column="RR_Id" />
+		<result property="RR_Name" column="RR_Name"/>
+		<result property="RR_Remark" column="RR_Remark"/>
+		<result property="RR_Ext1" column="RR_Ext1"/>
+		<result property="RR_Ext2" column="RR_Ext2"/>
+	</association>
+	<association property="sections" javaType="sections"> 
+		<id property="sec_id" column="sec_id" />
+		<result property="sec_name" column="sec_name"/>
+		<result property="sec_remark" column="sec_remark"/>		
+	</association>
+	</resultMap>
+  	<select id="selectTeaByAll" parameterType="fenye" resultMap="TeaRoomSecMap">
+  		select s.*,r.*,t.* from teachers t INNER JOIN readrooms r INNER JOIN sections s
+	ON t.tea_sec_id=s.sec_id AND t.tea_status=r.RR_Id
+	
+	limit #{page},#{pageSize}
+  	</select>
+  	<select id="selectTeaCount" parameterType="fenye" resultType="int">
+  		select count(1) from teachers t INNER JOIN readrooms r INNER JOIN sections s
+	ON t.tea_sec_id=s.sec_id AND t.tea_status=r.RR_Id
+  	</select>
+  	<select id="selectTeaById" parameterType="int" resultMap="TeaRoomSecMap">
+  		select s.*,r.*,t.* from teachers t INNER JOIN readrooms r INNER JOIN sections s
+	ON t.tea_sec_id=s.sec_id AND t.tea_status=r.RR_Id
+	<where>		
+			t.tea_id=#{tea_id}		
+	</where>
+  	</select>
+  	<select id="selectTeaByRR_NameAndCount" resultType="bingTu">
+  		select r.RR_Name as name,COUNT(1) as value  from teachers t INNER JOIN readrooms r 
+	ON  r.RR_Id=t.tea_status GROUP BY r.RR_Name
+  	</select>
+  	
+  	<update id="updateTea_status" parameterType="teachers">
+  	update students 
+  	<set>
+  	tea_status=#{tea_status}
+  	</set>
+  	where tea_cardno=#{tea_cardno}
+  	</update>
+  </mapper>

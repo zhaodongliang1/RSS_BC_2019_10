@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  <mapper namespace="com.ysd.RSS.dao.MembershipsDao">
+  
+  	<select id="selectMembershipsBySpecialty" parameterType="String" resultType="Memberships">
+  		select * from memberships where mem_specialty=#{mem_specialty}
+  	</select>
+  	
+  </mapper>
