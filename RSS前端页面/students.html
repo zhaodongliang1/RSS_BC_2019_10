@@ -1,0 +1,186 @@
+﻿<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="js/jquery-easyui-1.4.3/themes/icon.css">
+		<link rel="stylesheet" type="text/css" href="js/jquery-easyui-1.4.3/themes/default/easyui.css">
+		<script type="text/javascript" src="js/jquery-easyui-1.4.3/jquery.min.js"></script>
+		<script type="text/javascript" src="js/jquery-easyui-1.4.3/jquery.easyui.min.js"></script>
+		<script type="text/javascript" src="js/jquery-easyui-1.4.3/locale/easyui-lang-zh_CN.js"></script>
+		<script type="text/javascript" src="js/echarts.js"></script>
+	</head>
+	<script>
+		$(function() {
+			init();
+		})
+
+		function init() {
+			$("#stuTab").datagrid({
+				url: "http://127.0.0.1:8088/RSS/findAllStu",
+				method: "post",
+				pagination: true,
+				rownumbers: true,
+				toolbar: "#stuBar"
+			})
+		}
+
+		function stu_statusFormatter(value, row, index) {
+			return row.readrooms.rr_Name;
+		}
+
+		function xiFormatter(value, row, index) {
+			return row.memberships.mem_department;
+		}
+
+		function zhuanyeFormatter(value, row, index) {
+			return row.memberships.mem_specialty;
+		}
+
+		function xueliFormatter(value, row, index) {
+			return row.memberships.mem_degree;
+		}
+		//表格导出
+		function exportExcelChu() {
+			var datagridTitle = new Array();
+			var data = $("#stuTab").datagrid("getSelections");
+			var stuIds = "";
+			for(var i = 0; i < data.length; i++) {
+				var row = data[i].stu_id;
+				stuIds = stuIds + row + ",";
+			}
+			if(row != null) {
+				var fields = $("#stuTab").datagrid('getColumnFields'); //返回列字段
+				var Titles = datagridTitle[0];
+				for(var i = 0; i < fields.length; i++) {
+					var option = $("#stuTab").datagrid('getColumnOption', fields[i]); //返回指定列属性		        		           
+					datagridTitle.push(option.title);
+					Titles += "," + datagridTitle[i]; //包含2个undefined
+				}
+
+				$.messager.prompt('提示信息', '请输入导出的文件名：', function(r) {
+					if(r != null && r != '') {
+						r = "D:/" + r + ".xls";
+						$.post("http://127.0.0.1:8088/RSS/exportExcelStuChu", {
+							datagridTitle: Titles,
+							stuIds: stuIds,
+							filePath: r
+						}, function(res) {
+							if(res > 0) {
+								$.messager.alert("提示", "导出成功,在D盘");
+							} else {
+								$.messager.alert("提示", "导出失败");
+							}
+						}, "json")
+					}
+				});
+			} else {
+				$.messager.alert('提示', '请选择要导出的行');
+			}
+		}
+		//导入
+		function exportExcelStuRu() {
+
+		}
+	</script>
+
+	<body>
+		<table id="stuTab" class="easyui-datagrid">
+			<thead>
+				<tr>
+					<th field="ck" checkbox="true"></th>
+					<th data-options="field:'stu_id',title:'学生编号'"></th>
+					<th data-options="field:'stu_cardno',width:150,title:'卡号'"></th>
+					<th data-options="field:'stu_name',title:'姓名'"></th>
+					<th data-options="field:'stu_sex',title:'性别'"></th>
+
+					<th data-options="field:'stu_status',title:'阅览室名称',formatter:stu_statusFormatter"></th>
+					<th data-options="field:'stu_remark',title:'备注'"></th>
+					<th data-options="field:'stu_no',title:'学号',width:100"></th>
+					<th data-options="field:'mem_department',title:'系',formatter:xiFormatter"></th>
+					<th data-options="field:'mem_specialty',title:'专业',formatter:zhuanyeFormatter"></th>
+					<th data-options="field:'mem_degree',title:'学历',formatter:xueliFormatter"></th>
+				</tr>
+			</thead>
+		</table>
+		<div id="stuBar">
+			<a href="javascript:void(0)" class="easyui-menubutton" data-options="iconCls:'icon-undo',hasDownArrow:false" onclick="exportExcelRu()">导入</a>
+			<a href="javascript:void(0)" class="easyui-menubutton" data-options="iconCls:'icon-undo',hasDownArrow:false" onclick="exportExcelChu()">导出</a>
+		</div>
+
+		<div id="XueSheng" style="width:500px; height: 300px;"></div>
+		<div id="chartmain" style="width:500px; height: 300px;"></div>
+		<div id="XueShengXueLi" style="width:500px; height: 300px;"></div>
+
+		<script type="text/javascript">
+			mylabel = {
+				show: true, //是否显示标签。
+				//position: "inside", //标签的位置。// 绝对的像素值[10, 10],// 相对的百分比['50%', '50%'].'top','left','right','bottom','inside','insideLeft','insideRight','insideTop','insideBottom','insideTopLeft','insideBottomLeft','insideTopRight','insideBottomRight'
+				offset: [30, 40], //是否对文字进行偏移。默认不偏移。例如：[30, 40] 表示文字在横向上偏移 30，纵向上偏移 40。
+				formatter: '{b}:{c}\n{{d}%}' //标签内容格式器。模板变量有 {a}、{b}、{c}，分别表示系列名，数据名，数据值。  
+			};
+
+			$(function() {
+				
+				$.post("http://127.0.0.1:8088/RSS/selectStuByRR_NameAndCount", function(data) {
+					
+					//指定图标的配置和数据
+					var option = {
+
+						title: {
+							text: '阅览室学生在线人数数据统计'
+						},
+						legend: {
+							orient: 'vertical',
+							x: 'right',
+							data: data
+						},
+						series: [{
+							name: '访问量',
+							type: 'pie',
+							radius: '40%',
+							label: { //图形上的文本标签，可用于说明图形的一些数据信息，比如值，名称等，
+								normal: mylabel,
+								emphasis: mylabel
+							},
+							data: data
+						}]
+					};
+					//初始化echarts实例
+					var myChart = echarts.init(document.getElementById('XueSheng'));
+					//使用制定的配置项和数据显示图表
+					myChart.setOption(option);
+				}, "json")
+				$.post("http://127.0.0.1:8088/RSS/selectByRR_NameAndCount", function(data) {
+					//指定图标的配置和数据
+					var option = {
+						title: {
+							text: '阅览室在线人数数据统计'
+						},
+						legend: {
+							orient: 'vertical',
+							x: 'right',
+							data: data
+						},
+						series: [{
+							name: '访问量',
+							type: 'pie',
+							radius: '40%',
+							label: { //图形上的文本标签，可用于说明图形的一些数据信息，比如值，名称等，
+								normal: mylabel,
+								emphasis: mylabel
+							},
+							data: data
+						}]
+					};
+					//初始化echarts实例
+					var myChart = echarts.init(document.getElementById('chartmain'));
+					//使用制定的配置项和数据显示图表
+					myChart.setOption(option);
+				}, "json")
+			})
+		</script>
+	</body>
+
+</html>
